@@ -5,7 +5,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/employees';
+const API_URL = process.env.REACT_APP_API_URL || 'https://employeefullstack.onrender.com/api/employees';
 
 // Validation 
 const employeeSchema = Yup.object().shape({
