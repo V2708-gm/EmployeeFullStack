@@ -1,30 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Button, Form, Alert, Modal } from 'react-bootstrap';
-import axios from 'axios';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import 'bootstrap/dist/css/bootstrap.min.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/employees';
-
-// Validation 
-const employeeSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
-  department: Yup.string().required('Department is required')
-});
+import { Container, Button, Alert } from 'react-bootstrap';
+import { FaSignOutAlt, FaUserPlus } from 'react-icons/fa';
+import api from './api';
+import Login from './components/Login';
+import Register from './components/Register';
+import EmployeeList from './components/EmployeeList';
+import EmployeeFormModal from './components/EmployeeFormModal';
+import './App.css';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [showRegister, setShowRegister] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Fetch all employees
   const fetchEmployees = async () => {
     try {
-      const { data } = await axios.get(API_URL);
+      const { data } = await api.get('/employees');
       setEmployees(data);
       setError(null);
     } catch (err) {
@@ -33,41 +28,26 @@ function App() {
   };
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  // Handle form submission
-  const handleSubmit = async (values, { resetForm }) => {
-    try {
-      if (currentEmployee) {
-        // Update existing employee
-        await axios.put(`${API_URL}/${currentEmployee._id}`, values);
-        setSuccess('Employee updated successfully');
-      } else {
-        // Create new employee
-        await axios.post(API_URL, values);
-        setSuccess('Employee created successfully');
-      }
+    if (isLoggedIn) {
       fetchEmployees();
-      resetForm();
-      setShowModal(false);
-      setCurrentEmployee(null);
-    } catch (err) {
-      setError(err.response?.data?.error?.message || 'Operation failed');
     }
+  }, [isLoggedIn]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setEmployees([]);
   };
 
-  // Handle edit
   const handleEdit = (employee) => {
     setCurrentEmployee(employee);
     setShowModal(true);
   };
 
-  // Handle delete
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        await api.delete(`/employees/${id}`);
         setSuccess('Employee deleted successfully');
         fetchEmployees();
       } catch (err) {
@@ -76,131 +56,69 @@ function App() {
     }
   };
 
-  return (
-    <Container className="mt-5">
-      <h1 className="text-center mb-4">Employee Management System</h1>
-      
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-      {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
+  const handleSaveEmployee = async (employeeData) => {
+    try {
+      if (currentEmployee) {
+        await api.put(`/employees/${currentEmployee._id}`, employeeData);
+        setSuccess('Employee updated successfully');
+      } else {
+        await api.post('/employees', employeeData);
+        setSuccess('Employee created successfully');
+      }
+      setShowModal(false);
+      setCurrentEmployee(null);
+      fetchEmployees();
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error?.message || 'Operation failed');
+    }
+  };
 
-      <div className="d-flex justify-content-between mb-3">
-        <h2>Employee List</h2>
-        <Button variant="primary" onClick={() => setShowModal(true)}>
-          Add Employee
+  if (!isLoggedIn) {
+    return showRegister ? (
+      <Register switchToLogin={() => setShowRegister(false)} />
+    ) : (
+      <Login onLogin={() => setIsLoggedIn(true)} switchToRegister={() => setShowRegister(true)} />
+    );
+  }
+
+  return (
+    <Container className="mt-4">
+      {/* Line 1: Centered EMS */}
+      <h1 className="app-main-title-centered">Employee Management System</h1>
+
+      {/* Line 2: Logout Button (right aligned) */}
+      <div className="d-flex justify-content-end mb-3">
+        <Button variant="danger" onClick={handleLogout}>
+          <FaSignOutAlt /> Logout
         </Button>
       </div>
 
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Department</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.length > 0 ? (
-            employees.map(employee => (
-              <tr key={employee._id}>
-                <td>{employee.name}</td>
-                <td>{employee.email}</td>
-                <td>{employee.department}</td>
-                <td>
-                  <Button variant="warning" size="sm" className="me-2" onClick={() => handleEdit(employee)}>
-                    Edit
-                  </Button>
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(employee._id)}>
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4" className="text-center">No employees found</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+      {/* Line 3: Employee List (left) + Add Employee (right) */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="employee-list-title">Employee List</h2>
+        <Button variant="success" onClick={() => setShowModal(true)}>
+          <FaUserPlus /> Add Employee
+        </Button>
+      </div>
 
-      {/* Employee Form Modal */}
-      <Modal show={showModal} onHide={() => {
-        setShowModal(false);
-        setCurrentEmployee(null);
-      }}>
-        <Modal.Header closeButton>
-          <Modal.Title>{currentEmployee ? 'Edit Employee' : 'Add Employee'}</Modal.Title>
-        </Modal.Header>
-        <Formik
-          initialValues={{
-            name: currentEmployee?.name || '',
-            email: currentEmployee?.email || '',
-            department: currentEmployee?.department || ''
-          }}
-          validationSchema={employeeSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ handleSubmit, handleChange, values, errors, touched }) => (
-            <Form onSubmit={handleSubmit}>
-              <Modal.Body>
-                <Form.Group className="mb-3">
-                  <Form.Label>Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={values.name}
-                    onChange={handleChange}
-                    isInvalid={touched.name && !!errors.name}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.name}
-                  </Form.Control.Feedback>
-                </Form.Group>
+      {/* Alerts */}
+      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
+      {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    value={values.email}
-                    onChange={handleChange}
-                    isInvalid={touched.email && !!errors.email}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.email}
-                  </Form.Control.Feedback>
-                </Form.Group>
+      {/* Employee Table */}
+      <EmployeeList employees={employees} onEdit={handleEdit} onDelete={handleDelete} />
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Department</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="department"
-                    value={values.department}
-                    onChange={handleChange}
-                    isInvalid={touched.department && !!errors.department}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.department}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="secondary" onClick={() => {
-                  setShowModal(false);
-                  setCurrentEmployee(null);
-                }}>
-                  Close
-                </Button>
-                <Button variant="primary" type="submit">
-                  {currentEmployee ? 'Update' : 'Save'}
-                </Button>
-              </Modal.Footer>
-            </Form>
-          )}
-        </Formik>
-      </Modal>
+      {/* Modal */}
+      <EmployeeFormModal
+        show={showModal}
+        onHide={() => {
+          setShowModal(false);
+          setCurrentEmployee(null);
+        }}
+        onSubmit={handleSaveEmployee}
+        employee={currentEmployee}
+      />
     </Container>
   );
 }
