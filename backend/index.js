@@ -43,6 +43,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Employee Management API',
+    status: 'running',
+    routes: {
+      auth: '/api/auth',
+      employees: '/api/employees',
+      analytics: '/api/analytics'
+    }
+  });
+});
+
 // 404 handler
 app.use((req, res, next) => next(createError(404, 'Not found')));
 

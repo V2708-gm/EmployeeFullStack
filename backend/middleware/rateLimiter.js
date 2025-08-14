@@ -1,6 +1,6 @@
 const redis = require('../config/redisClient');
 const WINDOW_SIZE = 60; // 1 minute window in seconds
-const MAX_REQUESTS = 5;
+const MAX_REQUESTS = 10;
 
 module.exports = async (req, res, next) => {
   // Get client IP (works behind proxies)
