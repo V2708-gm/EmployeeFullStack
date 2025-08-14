@@ -1,0 +1,120 @@
+/* User Auth Page - Soft Gradient Background */
+body.user-page {
+  background: linear-gradient(135deg, #e0f0ff, #f8f9fa);
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Auth container - Glassmorphism */
+.auth-container {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  max-width: 420px;
+  width: 100%;
+  animation: fadeInUp 0.6s ease;
+  backdrop-filter: blur(8px);
+}
+
+/* Heading */
+.gradient-text {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+/* Input group with icons */
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon .form-control {
+  padding-left: 2.5rem;
+}
+
+.input-with-icon i {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 1.1rem;
+}
+
+/* Labels */
+.form-label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Inputs */
+.form-control {
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+}
+
+/* Buttons */
+button, .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+button[type="submit"], .btn-primary {
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border: none;
+  color: white;
+}
+
+button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* Switch text */
+.switch-text {
+  text-align: center;
+  margin-top: 1rem;
+  color: #555;
+}
+
+.btn-link {
+  color: #3498db !important;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
